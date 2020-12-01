@@ -5,8 +5,14 @@ use std::io::{BufRead, BufReader};
 fn main() {
     let input = read_file("./src/input.txt");
 
-    let result = find_two_num_to_sum(&input, 2020);
-    match result {
+    let result_of_two = find_two_nums_to_sum(&input, 2020);
+    match result_of_two {
+        Ok(i) => println!("The multiplication is {}", i),
+        Err(e) => println!("{}", e),
+    }
+
+    let result_of_three = find_three_nums_to_sum(&input, 2020);
+    match result_of_three {
         Ok(i) => println!("The multiplication is {}", i),
         Err(e) => println!("{}", e),
     }
@@ -26,16 +32,32 @@ fn read_file(path_to_file: &str) -> Vec<i32> {
     result
 }
 
-fn find_two_num_to_sum(input: &Vec<i32>, sum: i32) -> Result<i32, &'static str> {
+fn find_two_nums_to_sum(input: &Vec<i32>, sum: i32) -> Result<i32, &'static str> {
     let mut has_seen: HashMap<i32, bool> = HashMap::new();
 
-    for &i in input {
-        let need = sum - i;
+    for &num in input {
+        let need = sum - num;
         if has_seen.contains_key(&need) {
-            return Ok(need * i);
+            return Ok(need * num);
         }
-        has_seen.insert(i, true);
+        has_seen.insert(num, true);
     }
 
     Err("Cannot find two numbers summing to 2020")
+}
+
+fn find_three_nums_to_sum(input: &Vec<i32>, sum: i32) -> Result<i32, &'static str> {
+    for (idx, num) in input.iter().enumerate() {
+        let need = sum - num;
+        let result = find_two_nums_to_sum(
+            &input[idx..].to_vec(),
+            need,
+        );
+        match result {
+            Ok(i) => return Ok(i * num),
+            Err(_) => continue,
+        }
+    }
+
+    Err("Cannot find three numbers summing to 2020")
 }
