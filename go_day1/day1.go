@@ -30,13 +30,13 @@ func main() {
 	// Get raw string from file and convert each line to an integer
 	input := readFile(file)
 
-	resultOfTwo, err := findTwoNumToSum(input, NewYear)
+	resultOfTwo, err := findTwoNumsToSum(input, NewYear)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(resultOfTwo)
 
-	resultOfThree, err := findThreeNumToSum(input, NewYear)
+	resultOfThree, err := findThreeNumsToSum(input, NewYear)
 	if err != nil {
 		panic(err)
 	}
@@ -59,8 +59,8 @@ func readFile(file io.Reader) []int {
 	return result
 }
 
-// findTwoNumToSum finds two numbers in an array that sums to the given sum
-func findTwoNumToSum(input []int, sum int) (int, error) {
+// findTwoNumsToSum finds two numbers in an array that sums to the given sum
+func findTwoNumsToSum(input []int, sum int) (int, error) {
 	hasSeen := make(map[int]bool)
 
 	for _, num := range input {
@@ -74,11 +74,11 @@ func findTwoNumToSum(input []int, sum int) (int, error) {
 	return 0, ErrNumNotFound
 }
 
-// findThreeNumToSum finds three numbers in an array that sums to the given sum
-func findThreeNumToSum(input []int, sum int) (int, error) {
+// findThreeNumsToSum finds three numbers in an array that sums to the given sum
+func findThreeNumsToSum(input []int, sum int) (int, error) {
 	for i, num := range input {
 		need := sum - num
-		mult, err := findTwoNumToSum(input[i:], need)
+		mult, err := findTwoNumsToSum(input[i:], need)
 		if err != nil {
 			continue
 		} else {
