@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // NewYear is the sum that two numbers should have
@@ -18,7 +19,6 @@ var ErrNumNotFound = errors.New("cannot find two numbers from input that sum to 
 
 func main() {
 	filename := flag.String("filename", "input.txt", "a file to read text-based Python dictionary output from.")
-
 	flag.Parse()
 
 	file, err := os.Open(*filename)
@@ -27,14 +27,13 @@ func main() {
 	}
 	defer file.Close()
 
-	// Get raw string from file and convert to bytes for regex
+	// Get raw string from file and convert each line to an integer
 	input := readFile(file)
 
 	resultOfTwo, err := findTwoNumToSum(input, NewYear)
 	if err != nil {
 		panic(err)
 	}
-
 	fmt.Println(resultOfTwo)
 
 	resultOfThree, err := findThreeNumToSum(input, NewYear)
@@ -44,12 +43,13 @@ func main() {
 	fmt.Println(resultOfThree)
 }
 
+// readFile reads a given input file and returns a slice of integers
 func readFile(file io.Reader) []int {
 	result := []int{}
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		num, err := strconv.Atoi(scanner.Text())
+		num, err := strconv.Atoi(strings.TrimSpace(scanner.Text()))
 		if err != nil {
 			panic(err)
 		}
@@ -59,6 +59,7 @@ func readFile(file io.Reader) []int {
 	return result
 }
 
+// findTwoNumToSum finds two numbers in an array that sums to the given sum
 func findTwoNumToSum(input []int, sum int) (int, error) {
 	hasSeen := make(map[int]bool)
 
@@ -73,6 +74,7 @@ func findTwoNumToSum(input []int, sum int) (int, error) {
 	return 0, ErrNumNotFound
 }
 
+// findThreeNumToSum finds three numbers in an array that sums to the given sum
 func findThreeNumToSum(input []int, sum int) (int, error) {
 	for i, num := range input {
 		need := sum - num
