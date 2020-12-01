@@ -60,36 +60,23 @@ func readFile(file io.Reader) []int {
 }
 
 func findTwoNumToSum(input []int, sum int) (int, error) {
-	firsts := []int{}
-	seconds := []int{}
+	hasSeen := make(map[int]bool)
 
-	for _, first := range input {
-		firsts = append(firsts, first)
-		second := sum - first
-		seconds = append(seconds, second)
-	}
-
-	for i, second := range seconds {
-		if numInSlice(second, firsts) {
-			return firsts[i] * second, nil
+	for _, num := range input {
+		need := sum - num
+		if hasSeen[need] {
+			return num * need, nil
 		}
+		hasSeen[num] = true
 	}
 
 	return 0, ErrNumNotFound
 }
 
 func findThreeNumToSum(input []int, sum int) (int, error) {
-	firsts := []int{}
-	remainings := []int{}
-
-	for _, first := range input {
-		firsts = append(firsts, first)
-		remaining := sum - first
-		remainings = append(remainings, remaining)
-	}
-
 	for i, num := range input {
-		mult, err := findTwoNumToSum(input[1:], remainings[i])
+		need := sum - num
+		mult, err := findTwoNumToSum(input[i:], need)
 		if err != nil {
 			continue
 		} else {
@@ -98,14 +85,4 @@ func findThreeNumToSum(input []int, sum int) (int, error) {
 	}
 
 	return 0, ErrNumNotFound
-}
-
-func numInSlice(num int, array []int) bool {
-	for _, element := range array {
-		if num == element {
-			return true
-		}
-	}
-
-	return false
 }
