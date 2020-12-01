@@ -1,5 +1,5 @@
 # advent-of-code-2020
-Solving puzzles instead of eating chocolate.
+Solving puzzles instead of eating chocolate. Most of the challenges will be solved in Go 🐹 and, if time allows, Rust 🦀. It is likely I will not solve any challenges in Python 🐍 this year as I intend to improve my skills in Go and Rust.
 
 | Day  | Puzzle 1 | Puzzle 2 |
 | :--: | :------: | :------: |
