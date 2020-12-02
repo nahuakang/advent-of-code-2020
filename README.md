@@ -4,7 +4,7 @@ Solving puzzles instead of eating chocolate. Most of the challenges will be solv
 | Day  |  Part 1  |  Part 2  |  Languages   |
 | :--: | :------: | :------: |   :------:   |
 |  1   |   Done   |   Done   |     🐹🦀     |
-|  2   |   Done   |   Done   |      🐹      |
+|  2   |   Done   |   Done   |     🐹🦀     |
 |  3   |          |          |              |
 |  4   |          |          |              |
 |  5   |          |          |              |
