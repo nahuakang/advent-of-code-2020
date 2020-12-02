@@ -21,14 +21,18 @@ func main() {
 	}
 	defer file.Close()
 
-	// Get raw string from file and convert each line to an integer
+	// Get raw string from file and convert each line to an integer.
 	input := readFile(file)
 	passwords := processPasswordAndPolicy(input)
-	count := countValidPasswords(passwords)
-	fmt.Println(count)
+
+	sledRentalValidPasswordCount := countValidPasswords(passwords, isValidSledRentalPassword)
+	fmt.Println(sledRentalValidPasswordCount)
+
+	tobogganValidPasswordCount := countValidPasswords(passwords, isValidTobogganCorporatePassword)
+	fmt.Println(tobogganValidPasswordCount)
 }
 
-// Password represents a given policy and the password
+// Password represents a given policy and the password.
 type Password struct {
 	min      int
 	max      int
@@ -36,7 +40,7 @@ type Password struct {
 	password string
 }
 
-// readFile reads a given input file and returns a slice of integers
+// readFile reads a given input file and returns a slice of integers.
 func readFile(file io.Reader) []string {
 	result := []string{}
 
@@ -49,7 +53,7 @@ func readFile(file io.Reader) []string {
 	return result
 }
 
-// processPasswordAndPolicy cleans up the raw file input and returns a slice of Password structs
+// processPasswordAndPolicy cleans up the raw file input and returns a slice of Password structs.
 func processPasswordAndPolicy(rawInput []string) []Password {
 	results := []Password{}
 
@@ -78,7 +82,7 @@ func processPasswordAndPolicy(rawInput []string) []Password {
 	return results
 }
 
-// splitPolicyFields is a helper function to extract password and password policies
+// splitPolicyFields is a helper function to extract password and password policies.
 func splitPolicyFields(input, sep string) (string, string, string, string) {
 	rawResults := strings.Split(input, " ")
 	minMax := strings.Split(rawResults[0], "-")
@@ -89,11 +93,11 @@ func splitPolicyFields(input, sep string) (string, string, string, string) {
 	return string(min), string(max), string(letter), password
 }
 
-// countValidPasswords counts the number of valid passwords
-func countValidPasswords(passwords []Password) int {
+// countValidPasswords counts the number of valid passwords.
+func countValidPasswords(passwords []Password, fn func(Password) bool) int {
 	count := 0
 	for _, password := range passwords {
-		if isValidPassword(password) {
+		if fn(password) {
 			count++
 		}
 	}
@@ -101,8 +105,8 @@ func countValidPasswords(passwords []Password) int {
 	return count
 }
 
-// isValidPassword checks if a given password is valid according to its policy
-func isValidPassword(password Password) bool {
+// isValidPassword checks if a given password is valid according to North Pole Sled Rental Company policy.
+func isValidSledRentalPassword(password Password) bool {
 	re := regexp.MustCompile(password.letter)
 	matches := re.FindAllString(password.password, -1)
 	count := len(matches)
@@ -111,4 +115,14 @@ func isValidPassword(password Password) bool {
 	}
 
 	return false
+}
+
+// isValidTobogganCorporatePassword checks if a given password is valid according to Toboggan Corporate Authentication System's policy.
+func isValidTobogganCorporatePassword(password Password) bool {
+	firstPosValid := string(password.password[password.min-1]) == password.letter
+	secondPosValid := string(password.password[password.max-1]) == password.letter
+	if (!firstPosValid && !secondPosValid) || (firstPosValid && secondPosValid) {
+		return false
+	}
+	return true
 }
