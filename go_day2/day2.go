@@ -54,28 +54,25 @@ func readFile(file io.Reader) []string {
 }
 
 // processPasswordAndPolicy cleans up the raw file input and returns a slice of Password structs.
-func processPasswordAndPolicy(rawInput []string) []Password {
+func processPasswordAndPolicy(rawInputs []string) []Password {
 	results := []Password{}
 
-	for _, raw := range rawInput {
-		minStr, maxStr, policyLetter, password := splitPolicyFields(raw, " ")
-		min, err := strconv.Atoi(minStr)
+	for _, rawInput := range rawInputs {
+		passwordInfo := splitPolicyFields(rawInput)
+
+		min, err := strconv.Atoi(passwordInfo[0])
 		if err != nil {
 			panic(err)
 		}
-		max, err := strconv.Atoi(maxStr)
+
+		max, err := strconv.Atoi(passwordInfo[1])
 		if err != nil {
 			panic(err)
 		}
 
 		results = append(
 			results,
-			Password{
-				min:      min,
-				max:      max,
-				letter:   policyLetter,
-				password: password,
-			},
+			Password{min, max, passwordInfo[2], passwordInfo[3]},
 		)
 	}
 
@@ -83,14 +80,9 @@ func processPasswordAndPolicy(rawInput []string) []Password {
 }
 
 // splitPolicyFields is a helper function to extract password and password policies.
-func splitPolicyFields(input, sep string) (string, string, string, string) {
-	rawResults := strings.Split(input, " ")
-	minMax := strings.Split(rawResults[0], "-")
-	min := minMax[0]
-	max := minMax[1]
-	letter := rawResults[1][0]
-	password := rawResults[2]
-	return string(min), string(max), string(letter), password
+func splitPolicyFields(input string) []string {
+	re := regexp.MustCompile(`[- :]+`)
+	return re.Split(input, -1)
 }
 
 // countValidPasswords counts the number of valid passwords.
@@ -101,7 +93,6 @@ func countValidPasswords(passwords []Password, fn func(Password) bool) int {
 			count++
 		}
 	}
-
 	return count
 }
 
@@ -113,7 +104,6 @@ func isValidSledRentalPassword(password Password) bool {
 	if count >= password.min && count <= password.max {
 		return true
 	}
-
 	return false
 }
 
