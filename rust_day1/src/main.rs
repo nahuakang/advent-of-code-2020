@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 fn main() {
-    let input = read_file("./input.txt");
+    let input = read_file("./src/input.txt");
 
     let result_of_two = find_two_nums_to_sum(&input, 2020);
     match result_of_two {
