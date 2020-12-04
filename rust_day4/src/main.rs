@@ -7,8 +7,6 @@ fn main() {
     let passports_input = read_to_string("./src/input.txt").expect("cannot load file");
     let passports: Vec<&str> = passports_input.split("\n\n").collect();
 
-    println!("Last item in passports is: {:?}", passports.last());
-
     let part_one_valid_count: i32 = passports
         .iter()
         .map(|&passport| has_required_fields(passport, &valid_fields) as i32)
@@ -30,20 +28,13 @@ fn has_required_fields(passport: &str, required_fields: &Vec<&str>) -> bool {
 fn has_valid_fields(passport: &str) -> bool {
     let fields_separator = Regex::new(r"\s\n|\s|\n").unwrap();
 
-    let mut fields: Vec<&str> = fields_separator.split(passport).collect();
-
     // Drop the final nextline to avoid
-    println!("fields are: {:?}", fields);
-    if fields.ends_with(&[""]) {
-        fields.pop();
-        println!("fields cleaned are: {:?}", fields);
-    }
+    let fields: Vec<&str> = fields_separator.split(passport).filter(|field| !field.is_empty()).collect();
     
     fields.iter().all(|field| is_valid_field(field))
 }
 
 fn is_valid_field(field: &str) -> bool {
-    println!("Field is currently: {}", field);
     let field_extractor = Regex::new(r":").unwrap();
     let splitted_field: Vec<&str> = field_extractor.split(field).collect();
     let (key, value) = (splitted_field[0], splitted_field[1]);
