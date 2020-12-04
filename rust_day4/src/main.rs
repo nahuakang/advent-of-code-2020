@@ -7,17 +7,11 @@ fn main() {
 
     let part_one_valid_count: i32 = passports
         .iter()
-        .map(|&passport| is_valid_passport(passport, &valid_fields) as i32)
+        .map(|&passport| has_required_fields(passport, &valid_fields) as i32)
         .sum();
     println!("Part 1: Valid count is {}.", part_one_valid_count);
 }
 
-fn is_valid_passport(passport: &str, required_fields: &Vec<&str>) -> bool {
-    for required_field in required_fields.iter() {
-        if !passport.contains(required_field) {
-            return false;
-        }
-    }
-
-    true
+fn has_required_fields(passport: &str, required_fields: &Vec<&str>) -> bool {
+    required_fields.iter().all(|&required| passport.contains(required))
 }
