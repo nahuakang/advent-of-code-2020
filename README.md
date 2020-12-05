@@ -7,8 +7,8 @@ Solving puzzles instead of eating chocolate. Most of the challenges will be solv
 |  2   |   Done   |   Done   |     🐹🦀     |
 |  3   |   Done   |   Done   |     🐹🦀     |
 |  4   |   Done   |   Done   |     🐹🦀     |
-|  5   |          |          |              |
-|  6   |          |          |              |
+|  5   |   Done   |   Done   |       🦀     |
+|  6   |          |          |       🦀     |
 |  7   |          |          |              |
 |  8   |          |          |              |
 |  9   |          |          |              |
