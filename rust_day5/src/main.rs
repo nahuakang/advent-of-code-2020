@@ -1,5 +1,10 @@
 use std::fs::read_to_string;
 
+// This problem can be more concisely solved by bitwise operation with the function:
+// fn get_seat_id_with_bitwise_operator(seat_hint: &str) -> i32
+// For a quick explanation for the code commented below, see this following link:
+// https://www.reddit.com/r/adventofcode/comments/k7c41m/day_5_question_about_bit_shifts/
+
 fn main() {
     let seats = read_to_string("./src/input.txt").expect("cannot read file to string");
     let ids = get_seat_ids(seats.lines().collect::<Vec<&str>>());
@@ -18,7 +23,12 @@ fn find_missing_id(seat_ids: &Vec<i32>) -> i32 {
 }
 
 fn get_seat_ids(seats: Vec<&str>) -> Vec<i32> {
-    seats.iter().map(|hint| get_seat_id(hint)).collect::<Vec<i32>>()
+    seats.iter().map(|hint| get_seat_id_with_bitwise_operator(hint)).collect::<Vec<i32>>()
+}
+
+fn get_seat_id_with_bitwise_operator(seat_hint: &str) -> i32 {
+    let seat_binary = seat_hint.to_string().replace("F", "0").replace("B", "1").replace("L", "0").replace("R", "1");
+    i32::from_str_radix(&seat_binary, 2).unwrap()
 }
 
 fn get_seat_id(seat_hint: &str) -> i32 {
