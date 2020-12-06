@@ -20,9 +20,9 @@ fn full_set() -> Person {
     ('a'..='z').collect::<Person>()
 }
 
-fn process_groups<F>(groups: &Vec<Group>, acc: Person, mut func: F) -> usize
+fn process_groups<F>(groups: &Vec<Group>, acc: Person, func: F) -> usize
 where
-    F: FnMut(&Person, &Person) -> Person,
+    F: Fn(&Person, &Person) -> Person,
 {
     groups
         .iter()
