@@ -44,8 +44,7 @@ impl<'a> Group<'a> {
 fn main() {
     let forms = read_to_string("./src/input.txt").expect("cannot read from file");
     let forms = forms.trim(); 
-    let groups = forms.split("\n\n").map(|group| Group::new(group)).collect::<Vec<Group>>();
     
-    println!("{:?}", groups.iter().map(|group| group.union_count()).sum::<usize>());
-    println!("{:?}", groups.iter().map(|group| group.intersection_count()).sum::<usize>());
+    println!("{:?}", forms.split("\n\n").map(|group| Group::new(group)).map(|group| group.union_count()).sum::<usize>());
+    println!("{:?}", forms.split("\n\n").map(|group| Group::new(group)).map(|group| group.intersection_count()).sum::<usize>());
 }
