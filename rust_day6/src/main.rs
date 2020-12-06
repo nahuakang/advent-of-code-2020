@@ -1,53 +1,51 @@
 use std::collections::HashSet;
 use std::fs::read_to_string;
 
+struct Group<'a> {
+    all_ascii_chars: HashSet<char>,
+    individuals: &'a str,
+}
+
+impl<'a> Group<'a> {
+    fn new(group: &'a str) -> Self {
+        let chars = ('a'..='z').filter(|c| c.is_alphabetic()).collect::<HashSet<char>>();
+        Self{
+            all_ascii_chars: chars,
+            individuals: group,
+        }
+    }
+
+    fn union_count(&self) -> usize {
+        let mut union = HashSet::new();
+        for c in self.individuals.chars() {
+            if !c.is_ascii_alphabetic() {
+                continue;
+            }
+            union.insert(c);
+        }
+        union.len()
+    }
+
+    fn intersection_count(&self) -> usize {
+        let mut intersect = self.all_ascii_chars.iter().cloned().collect::<HashSet<char>>();
+        for individual in self.individuals.split("\n") {
+            let mut cur = HashSet::new();
+            for c in individual.chars() {
+                cur.insert(c);
+            }
+
+            intersect = intersect.intersection(&cur).cloned().collect();
+        }
+
+        intersect.len()
+    }
+}
+
 fn main() {
     let forms = read_to_string("./src/input.txt").expect("cannot read from file");
     let forms = forms.trim(); 
-    let groups = forms.split("\n\n").collect::<Vec<&str>>();
-    println!("{:?}", count_all_questions(&groups, count_group_questions_union));
-    println!("{:?}", count_all_questions(&groups, count_group_questions_intersect));
-}
-
-fn count_all_questions(groups: &Vec<&str>, f: fn(&str) -> usize) -> usize {
-    let mut total: usize = 0;
-    for &group in groups.iter() {
-        println!();
-        println!("Group is: \n{}", group);
-        println!("Count is: {}", f(group));
-        total += f(group);
-    }
-    total
-}
-
-fn count_group_questions_union(group: &str) -> usize {
-    let individuals = group.split("\n").collect::<Vec<&str>>();
-    let mut total = HashSet::new();
-    for individual in individuals.iter() {
-        for c in individual.chars() {
-            total.insert(c);
-        }
-    }
-    total.len()
-}
-
-fn count_group_questions_intersect(group: &str) -> usize {
-    let individuals = group.split("\n").collect::<Vec<&str>>();
+    let groups = forms.split("\n\n").map(|group| Group::new(group)).collect::<Vec<Group>>();
     
-    let mut sets = Vec::new();
-    for &individual in individuals.iter() {
-        println!("Individual is: {:?}", individual.chars().collect::<HashSet<_>>());
-        sets.push(individual.chars().collect::<HashSet<_>>());
-    }
-
-    if sets.len() == 1 {
-        return sets[0].len();
-    }
-    
-    let mut first = sets[0].clone();
-    for set in sets.iter().skip(1) {
-        first = first.intersection(&set).cloned().collect();
-    }
-
-    first.len()
+    println!("{:?}", groups.iter().map(|group| group.union_count()).sum::<usize>());
+    println!("{:?}", groups.iter().map(|group| group.intersection_count()).sum::<usize>());
 }
