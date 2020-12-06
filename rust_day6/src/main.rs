@@ -1,68 +1,51 @@
 use std::collections::HashSet;
 use std::fs::read_to_string;
 
-struct Group<'a> {
-    all_ascii_chars: HashSet<char>,
-    individuals: &'a str,
+type Person = HashSet<char>;
+type Group = Vec<Person>;
+
+fn read_groups(forms: &str) -> Vec<Group> {
+    forms
+        .split("\n\n")
+        .map(|group| {
+            group
+                .lines()
+                .map(|person| person.chars().collect::<Person>())
+                .collect::<Group>()
+        })
+        .collect::<Vec<Group>>()
 }
 
-impl<'a> Group<'a> {
-    fn new(group: &'a str) -> Self {
-        let chars = ('a'..='z')
-            .collect::<HashSet<char>>();
-        Self {
-            all_ascii_chars: chars,
-            individuals: group,
-        }
-    }
+fn full_set() -> Person {
+    ('a'..='z').collect::<Person>()
+}
 
-    fn union_count(&self) -> usize {
-        let mut union = HashSet::new();
-        for l in self.individuals.lines() {
-            for c in l.chars() {
-                union.insert(c);
-            }
-        }
-        union.len()
-    }
-
-    fn intersection_count(&self) -> usize {
-        let mut intersect = self
-            .all_ascii_chars
-            .iter()
-            .cloned()
-            .collect::<HashSet<char>>();
-        for individual in self.individuals.lines() {
-            let mut cur = HashSet::new();
-            for c in individual.chars() {
-                cur.insert(c);
-            }
-
-            intersect = intersect.intersection(&cur).cloned().collect();
-        }
-
-        intersect.len()
-    }
+fn process_groups<F>(groups: &Vec<Group>, acc: Person, mut func: F) -> usize
+where
+    F: FnMut(&Person, &Person) -> Person,
+{
+    groups
+        .iter()
+        .map(|group| group.iter().fold(acc.clone(), |a, person| func(&a, person)))
+        .map(|group| group.len())
+        .sum()
 }
 
 fn main() {
     let forms = read_to_string("./src/input.txt").expect("cannot read from file");
     let forms = forms.trim();
+    let groups = read_groups(forms);
 
     println!(
         "{:?}",
-        forms
-            .split("\n\n")
-            .map(|group| Group::new(group))
-            .map(|group| group.union_count())
-            .sum::<usize>()
+        process_groups(&groups, Person::new(), |acc, person| {
+            acc.union(&person).cloned().collect()
+        })
     );
     println!(
         "{:?}",
-        forms
-            .split("\n\n")
-            .map(|group| Group::new(group))
-            .map(|group| group.intersection_count())
-            .sum::<usize>()
+        process_groups(&groups, full_set(), |acc, person| {
+            acc.intersection(&person).cloned().collect()
+        })
     );
 }
