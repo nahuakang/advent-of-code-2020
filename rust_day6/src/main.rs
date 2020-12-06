@@ -8,8 +8,9 @@ struct Group<'a> {
 
 impl<'a> Group<'a> {
     fn new(group: &'a str) -> Self {
-        let chars = ('a'..='z').filter(|c| c.is_alphabetic()).collect::<HashSet<char>>();
-        Self{
+        let chars = ('a'..='z')
+            .collect::<HashSet<char>>();
+        Self {
             all_ascii_chars: chars,
             individuals: group,
         }
@@ -17,18 +18,21 @@ impl<'a> Group<'a> {
 
     fn union_count(&self) -> usize {
         let mut union = HashSet::new();
-        for c in self.individuals.chars() {
-            if !c.is_ascii_alphabetic() {
-                continue;
+        for l in self.individuals.lines() {
+            for c in l.chars() {
+                union.insert(c);
             }
-            union.insert(c);
         }
         union.len()
     }
 
     fn intersection_count(&self) -> usize {
-        let mut intersect = self.all_ascii_chars.iter().cloned().collect::<HashSet<char>>();
-        for individual in self.individuals.split("\n") {
+        let mut intersect = self
+            .all_ascii_chars
+            .iter()
+            .cloned()
+            .collect::<HashSet<char>>();
+        for individual in self.individuals.lines() {
             let mut cur = HashSet::new();
             for c in individual.chars() {
                 cur.insert(c);
@@ -43,8 +47,22 @@ impl<'a> Group<'a> {
 
 fn main() {
     let forms = read_to_string("./src/input.txt").expect("cannot read from file");
-    let forms = forms.trim(); 
-    
-    println!("{:?}", forms.split("\n\n").map(|group| Group::new(group)).map(|group| group.union_count()).sum::<usize>());
-    println!("{:?}", forms.split("\n\n").map(|group| Group::new(group)).map(|group| group.intersection_count()).sum::<usize>());
+    let forms = forms.trim();
+
+    println!(
+        "{:?}",
+        forms
+            .split("\n\n")
+            .map(|group| Group::new(group))
+            .map(|group| group.union_count())
+            .sum::<usize>()
+    );
+    println!(
+        "{:?}",
+        forms
+            .split("\n\n")
+            .map(|group| Group::new(group))
+            .map(|group| group.intersection_count())
+            .sum::<usize>()
+    );
 }
