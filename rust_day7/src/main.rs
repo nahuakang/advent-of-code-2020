@@ -18,23 +18,36 @@ fn main() {
 fn get_bag_rules(raw_input: &str) -> Rules {
     let mut rules: Rules = HashMap::new();
     let bag_parser = Regex::new(r"^(\w+\s\w+)\sbags*").unwrap();
-    // let rule_parser = Regex::new(r"\s(\d\s\w+\s\w+)\sbags*").unwrap();
-    let rule_parse = Regex::new(r"\d\s(\w+\s\w+)\sbags*").unwrap();
+    let rule_parse = Regex::new(r"(\d\s\w+\s\w+)\sbags*").unwrap();
 
     for line in raw_input.lines() {
-        let bag = bag_parser.captures(line).unwrap().get(1).map_or("", |m| m.as_str());
-        
-        let rule: Vec<&str> = rule_parse.captures_iter(line).filter_map(|cap| {
-            let group = cap.get(1).or(cap.get(2));
-            match group {
-                Some(bag) => Some(bag.as_str()),
-                None => None,
-            }
-        }).collect();
-        
+        let bag = bag_parser
+            .captures(line)
+            .unwrap()
+            .get(1)
+            .map_or("", |m| m.as_str());
+
+        let rule: Vec<(&str, usize)> = rule_parse
+            .captures_iter(line)
+            .filter_map(|cap| {
+                let group = cap.get(1).or(cap.get(2));
+                match group {
+                    Some(bag) => Some(bag.as_str()),
+                    None => None,
+                }
+            }) // Note that filter_map already unwrapped the Option
+            .map(|input| {
+                let mut iter = input.splitn(2, ' ');
+                let num = iter.next().unwrap().parse::<usize>().unwrap();
+                let bag = iter.next().unwrap();
+                (bag, num)
+            })
+            .collect();
+        if bag == "shiny gold" {
+            println!("{:?}", rule);
+        }
         rules.insert(bag, rule);
     }
-    
     rules
 }
 
