@@ -6,9 +6,9 @@ fn main() {
     let luggage_rules = read_to_string("./src/input.txt").expect("cannot read from file");
     let luggage_rules: &str = luggage_rules.trim();
 
-    let mut rules: HashMap<&str, Vec<&str>> = get_bag_rules(luggage_rules);
+    let rules: HashMap<&str, Vec<&str>> = get_bag_rules(luggage_rules);
 
-    let count = count_bags(&mut rules, vec!("shiny gold"), 0);
+    let count = count_bags(&rules, "shiny gold");
     println!("Part 1 count: {}", count);
 }
 
@@ -35,25 +35,23 @@ fn get_bag_rules(raw_input: &str) -> HashMap<&str, Vec<&str>> {
     rules
 }
 
-fn count_bags<'a>(bag_rules: &mut HashMap<&'a str, Vec<&'a str>>, targets: Vec<&'a str>, mut count: usize) -> usize {
-    if targets.len() == 0 {
-        return count;
-    }
-
-    let mut new_targets = Vec::<&str>::new();
-
-    for (bag, rules) in bag_rules.iter_mut() {
-        for target in targets.iter() {
-            if rules.contains(target) && !new_targets.contains(target) {
-                new_targets.push(bag);
-                count += 1;
-            }
+fn count_bags<'a>(bag_rules: &HashMap<&'a str, Vec<&'a str>>, target: &'a str) -> usize {
+    let mut count = 0;
+    for (_, rules) in bag_rules.iter() {
+        if contains_bag(bag_rules, rules, target) {
+            count += 1;
         }
     }
 
-    for bag in targets.iter() {
-        bag_rules.remove(bag);
+    count
+}
+
+fn contains_bag<'a>(bag_rules: &HashMap<&'a str, Vec<&'a str>>, rule: &Vec<&'a str>, target: &'a str) -> bool {
+    for &bag in rule.iter() {
+        if bag == target || contains_bag(bag_rules, bag_rules.get(bag).unwrap(), target) {
+            return true;
+        }
     }
 
-    count_bags(bag_rules, new_targets, count)
+    false
 }
