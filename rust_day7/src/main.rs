@@ -51,14 +51,10 @@ fn get_bag_rules(raw_input: &str) -> Rules {
 }
 
 fn count_bags(bag_rules: &Rules, target: &str) -> usize {
-    let mut count = 0;
-    for (_, rules) in bag_rules.iter() {
-        if contains_bag(bag_rules, rules, target) {
-            count += 1;
-        }
-    }
-
-    count
+    bag_rules
+        .iter()
+        .map(|(_, rule)| contains_bag(bag_rules, rule, target) as usize)
+        .sum()
 }
 
 fn contains_bag(bag_rules: &Rules, rule: &Rule, target: &str) -> bool {
@@ -78,7 +74,9 @@ fn count_required_bags(bag_rules: &Rules, rule: &Rule) -> i32 {
         let mut count = 0i32;
 
         for &bag in rule.iter() {
-            count = count + bag.1 as i32 + bag.1 as i32 * count_required_bags(bag_rules, &bag_rules[bag.0]);
+            count = count
+                + bag.1 as i32
+                + bag.1 as i32 * count_required_bags(bag_rules, &bag_rules[bag.0]);
         }
 
         count
