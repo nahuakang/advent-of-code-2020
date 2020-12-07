@@ -2,17 +2,18 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::fs::read_to_string;
 
-type Rule<'a> = Vec<&'a str>;
+type Rule<'a> = Vec<(&'a str, usize)>;
 type Rules<'a> = HashMap<&'a str, Rule<'a>>;
 
 fn main() {
     let luggage_rules = read_to_string("./src/input.txt").expect("cannot read from file");
     let luggage_rules: &str = luggage_rules.trim();
-
     let rules: Rules = get_bag_rules(luggage_rules);
 
-    let count = count_bags(&rules, "shiny gold");
-    println!("Part 1 count: {}", count);
+    let part_1_count = count_bags(&rules, "shiny gold");
+    println!("Part 1 count: {}", part_1_count);
+    let part_2_count = count_required_bags(&rules, &rules["shiny gold"]);
+    println!("Part 2 count: {}", part_2_count);
 }
 
 fn get_bag_rules(raw_input: &str) -> Rules {
@@ -43,15 +44,13 @@ fn get_bag_rules(raw_input: &str) -> Rules {
                 (bag, num)
             })
             .collect();
-        if bag == "shiny gold" {
-            println!("{:?}", rule);
-        }
+
         rules.insert(bag, rule);
     }
     rules
 }
 
-fn count_bags(bag_rules: &Rules, target: & str) -> usize {
+fn count_bags(bag_rules: &Rules, target: &str) -> usize {
     let mut count = 0;
     for (_, rules) in bag_rules.iter() {
         if contains_bag(bag_rules, rules, target) {
@@ -62,12 +61,26 @@ fn count_bags(bag_rules: &Rules, target: & str) -> usize {
     count
 }
 
-fn contains_bag(bag_rules: &Rules, rule:&Rule, target: &str) -> bool {
+fn contains_bag(bag_rules: &Rules, rule: &Rule, target: &str) -> bool {
     for &bag in rule.iter() {
-        if bag == target || contains_bag(bag_rules, bag_rules.get(bag).unwrap(), target) {
+        if bag.0 == target || contains_bag(bag_rules, bag_rules.get(bag.0).unwrap(), target) {
             return true;
         }
     }
 
     false
+}
+
+fn count_required_bags(bag_rules: &Rules, rule: &Rule) -> i32 {
+    if rule.is_empty() {
+        0i32
+    } else {
+        let mut count = 0i32;
+
+        for &bag in rule.iter() {
+            count = count + bag.1 as i32 + bag.1 as i32 * count_required_bags(bag_rules, &bag_rules[bag.0]);
+        }
+
+        count
+    }
 }
