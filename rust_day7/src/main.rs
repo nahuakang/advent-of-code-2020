@@ -17,10 +17,14 @@ fn main() {
 
 fn get_bag_rules(raw_input: &str) -> Rules {
     let mut rules: Rules = HashMap::new();
-    let re = Regex::new(r"^(\w+\s\w+)\sbags|\d\s(\w+\s\w+)\sbags*").unwrap();
+    let bag_parser = Regex::new(r"^(\w+\s\w+)\sbags*").unwrap();
+    // let rule_parser = Regex::new(r"\s(\d\s\w+\s\w+)\sbags*").unwrap();
+    let rule_parse = Regex::new(r"\d\s(\w+\s\w+)\sbags*").unwrap();
 
     for line in raw_input.lines() {
-        let list: Vec<&str> = re.captures_iter(line).filter_map(|cap| {
+        let bag = bag_parser.captures(line).unwrap().get(1).map_or("", |m| m.as_str());
+        
+        let rule: Vec<&str> = rule_parse.captures_iter(line).filter_map(|cap| {
             let group = cap.get(1).or(cap.get(2));
             match group {
                 Some(bag) => Some(bag.as_str()),
@@ -28,11 +32,7 @@ fn get_bag_rules(raw_input: &str) -> Rules {
             }
         }).collect();
         
-        let bag = list[0];
-        if !(bag == "shiny gold") {
-            let rule: Rule = list[1..].to_vec();
-            rules.insert(bag, rule);
-        }
+        rules.insert(bag, rule);
     }
     
     rules
