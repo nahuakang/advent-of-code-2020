@@ -1,126 +1,150 @@
+use std::collections::HashSet;
 use std::fs::read_to_string;
-
-type Instruction<'a> = (&'a str, i32);
-type Instructions<'a> = Vec<Instruction<'a>>;
+use std::str::FromStr;
 
 fn main() {
     let raw = read_to_string("./src/input.txt").expect("cannot read file");
     let raw = raw.trim();
-    let instructions = instructions_to_vec(raw);
-    let (part_1_acc, _) = infinite_loop(&instructions, Vec::new(), 0, 0);
-    println!("{}", part_1_acc);
-
-    let part_2_acc = find_finite_loop(&instructions);
-    println!("{}", part_2_acc);
+    let part_1_count = part_one(raw);
+    println!("Part 1 answer: {}", part_1_count);
+    let part_2_count = part_two(raw);
+    println!("part 2 answer: {}", part_2_count);
 }
 
-fn instructions_to_vec(instructions: &str) -> Instructions {
-    let mut ret = Vec::new();
-    for instruction in instructions.lines() {
-        let mut parts = instruction.split_whitespace().map(str::trim);
+#[derive(Debug, Copy, Clone)]
+enum Instruction {
+    Nop(isize),
+    Acc(isize),
+    Jmp(isize),
+}
 
-        match (parts.next(), parts.next()) {
-            (Some(command), Some(value)) => {
-                let parsed_value = value.parse::<i32>().unwrap();
+impl Instruction {
+    fn is_nop(&self) -> bool {
+        match self {
+            Instruction::Nop(_) => true,
+            _ => false,
+        }
+    }
 
-                ret.push((command, parsed_value));
+    fn is_jmp(&self) -> bool {
+        match self {
+            Instruction::Jmp(_) => true,
+            _ => false,
+        }
+    }
+}
+
+impl FromStr for Instruction {
+    type Err = String;
+    fn from_str(raw_instruction: &str) -> Result<Self, Self::Err> {
+        let mut parts = raw_instruction.split_whitespace().map(str::trim);
+        
+        match(parts.next(), parts.next()) {
+            (Some(instruction), Some(value)) => {
+                let parsed_value = value.parse::<isize>().unwrap();
+
+                match instruction {
+                    "nop" => Ok(Instruction::Nop(parsed_value)),
+                    "acc" => Ok(Instruction::Acc(parsed_value)),
+                    "jmp" => Ok(Instruction::Jmp(parsed_value)),
+                    _ => Err(format!("invalid instruction {}", raw_instruction)),
+                }
+            },
+            _ => Err(format!("invalid instruction {}", raw_instruction)),
+        }
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+enum HaltStatus {
+    Infinite,
+    Finite,
+}
+
+struct GameConsoleDebugger {
+    acc: isize,
+    instructions: Vec<Instruction>,
+    pos: usize,
+}
+
+impl GameConsoleDebugger {
+    fn new(instructions: Vec<Instruction>) -> Self {
+        Self {
+            acc: 0,
+            instructions,
+            pos: 0,
+        }
+    }
+
+    fn is_infinite_or_finite(&mut self) -> HaltStatus {
+        let mut visited_executions = HashSet::<usize>::new();
+
+        while self.pos < self.instructions.len() {
+            let instruction = self.instructions[self.pos];
+            
+            let (new_pos, new_acc) = match instruction {
+                Instruction::Jmp(offset) => (self.pos as isize + offset, self.acc),
+                Instruction::Acc(change) => (self.pos as isize + 1, self.acc + change),
+                Instruction::Nop(_) => (self.pos as isize + 1, self.acc),
+            };
+
+            if !visited_executions.insert(self.pos) {
+                return HaltStatus::Infinite;
             }
-            _ => panic!(format!("Failed to parse instruction P{}", instruction)),
-        }
-    }
-    ret
-}
 
-fn infinite_loop(
-    instructions: &Instructions,
-    mut visited: Vec<i32>,
-    mut pos: i32,
-    mut acc: i32,
-) -> (i32, bool) {
-    let mut finite = true;
-
-    loop {
-        if pos as usize > instructions.len() - 1 {
-            break;
+            self.acc = new_acc;
+            self.pos = new_pos as usize;
         }
 
-        if visited.contains(&pos) {
-            finite = false;
-            break;
-        }
-
-        if let Some(instruction) = &instructions.get(pos as usize) {
-            visited.push(pos);
-            update_instruction(instruction, &mut pos, &mut acc);
-        }
-    }
-    (acc, finite)
-}
-
-fn update_instruction(instruction: &Instruction, curr_pos: &mut i32, acc: &mut i32) {
-    match instruction.0 {
-        "acc" => {
-            *acc += instruction.1;
-            *curr_pos += 1;
-        }
-        "jmp" => {
-            *curr_pos += instruction.1;
-        }
-        _ => {
-            *curr_pos += 1;
-        }
+        HaltStatus::Finite
     }
 }
 
-fn find_finite_loop(instructions: &Instructions) -> i32 {
-    let mut pos = 0i32;
-    let mut acc = 0i32;
-    let mut visited: Vec<i32> = Vec::new();
+fn parse_instructions(input: &str) -> Vec<Instruction> {
+    input.lines().map(|line| {
+        Instruction::from_str(line.trim()).unwrap()
+    }).collect::<Vec<_>>()
+}
 
-    loop {
-        visited.push(pos);
-        let instruction = instructions[pos as usize];
-        if should_try_swap_instruction(&instruction) {
-            let (mut temp_pos, mut temp_acc) = (pos, acc);
-            swap_and_update_instruction(&instruction, &mut temp_pos, &mut temp_acc);
+fn part_one(input: &str) -> isize {
+    let instructions = parse_instructions(input);
+    let mut gc_debugger = GameConsoleDebugger::new(instructions);
+    gc_debugger.is_infinite_or_finite();
+    gc_debugger.acc
+}
 
-            let (inner_acc, finite) =
-                infinite_loop(&instructions, visited.clone(), temp_pos, temp_acc);
-
-            match finite {
-                true => {
-                    acc = inner_acc;
-                    break;
+fn part_two(input: &str) -> isize {
+    let instructions = parse_instructions(input);
+    instructions.iter().enumerate().find_map(|(idx, &instruction)| {
+        if instruction.is_jmp() || instruction.is_nop() {
+            let mut new_instructions = instructions.clone();
+            
+            match instruction {
+                Instruction::Nop(v) => {
+                    new_instructions[idx] = Instruction::Jmp(v);
                 }
-                false => {
-                    update_instruction(&instruction, &mut pos, &mut acc);
+                Instruction::Jmp(v) => {
+                    new_instructions[idx] = Instruction::Nop(v);
                 }
+                _ => {}
+            }
+
+            let mut gc_debugger = GameConsoleDebugger::new(new_instructions);
+            let status = gc_debugger.is_infinite_or_finite();
+            if status == HaltStatus::Finite {
+                Some(gc_debugger.acc)
+            } else {
+                None
             }
         } else {
-            update_instruction(&instruction, &mut pos, &mut acc);
+            None
         }
-    }
-    acc
-}
-
-fn should_try_swap_instruction(instruction: &Instruction) -> bool {
-    match instruction.0 {
-        "jmp" | "nop" => true,
-        _ => false,
-    }
-}
-
-fn swap_and_update_instruction(instruction: &Instruction, curr_pos: &mut i32, acc: &mut i32) {
-    match instruction.0 {
-        "jmp" => update_instruction(&("nop", instruction.1), curr_pos, acc),
-        "nop" => update_instruction(&("jmp", instruction.1), curr_pos, acc),
-        _ => panic!(),
-    }
+    }).unwrap()
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{find_finite_loop, infinite_loop, instructions_to_vec};
+    use super::{part_one, part_two};
     const INPUT: &'static str = "nop +0
 acc +1
 jmp +4
@@ -133,14 +157,9 @@ acc +6";
 
     #[test]
     fn test_part_one() {
-        assert_eq!(
-            infinite_loop(&instructions_to_vec(INPUT), Vec::new(), 0, 0),
-            (5, false)
-        );
+        assert_eq!(part_one(INPUT), 5);
     }
 
     #[test]
-    fn test_star_two() {
-        assert_eq!(find_finite_loop(&instructions_to_vec(INPUT)), 8);
-    }
+    fn test_star_two() {assert_eq!(part_two(INPUT), 8);}
 }
