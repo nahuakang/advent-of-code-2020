@@ -37,42 +37,37 @@ fn instructions_to_vec(instructions: &str) -> Instructions {
 
 fn infinite_loop(instructions: &Instructions) -> i32 {
     let (mut pos, mut acc) = (0i32, 0i32);
-    let mut has_been: Vec<i32> = Vec::new();
+    let mut visited: Vec<i32> = Vec::new();
 
     loop {
-        if has_been.contains(&pos) {
+        if visited.contains(&pos) {
             break;
         }
-        has_been.push(pos);
-        println!("has seen: {:?}", has_been);
-        let new_result = update_instruction(&instructions[pos as usize], pos, acc);
+        visited.push(pos);
+        println!("visited: {:?}", visited);
         println!();
-        pos = new_result.0;
-        acc = new_result.1;
+        update_instruction(&instructions[pos as usize], &mut pos, &mut acc);
     }
     
     acc
 }
 
-fn update_instruction(instruction: &Instruction, curr_pos: i32, acc: i32) -> (i32, i32) {
-    let mut new_acc = 0i32;
-    let new_pos: i32;
+fn update_instruction(instruction: &Instruction, curr_pos: &mut i32, acc: &mut i32) {
+    // let mut new_acc = 0i32;
+    // let new_pos: i32;
     
     match instruction.0 {
         "acc" => {
-            new_acc = acc + instruction.1;
-            new_pos = curr_pos + 1;
+            *acc += instruction.1;
+            *curr_pos += 1;
         }
         "jmp" => {
-            new_pos = curr_pos + instruction.1;
-            new_acc = acc;
+            *curr_pos += instruction.1;
         }
         _ => {
-            new_pos = curr_pos + 1;
-            new_acc = acc;
+            *curr_pos += 1;
         }
     }
     println!("instruct {}, value {}", instruction.0, instruction.1);
-    println!("new pos {}, new acc {}", new_pos, new_acc);
-    (new_pos, new_acc)
+    println!("new pos {}, new acc {}", *curr_pos, *acc);
 }
