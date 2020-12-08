@@ -1,12 +1,13 @@
 use std::fs::read_to_string;
 
-type Instruction<'a> = (&'a str, &'a str, i32);
+type Instruction<'a> = (&'a str, i32);
 type Instructions<'a> = Vec<Instruction<'a>>;
 
 fn main() {
     let raw = read_to_string("./src/input.txt").expect("cannot read file");
     let raw = raw.trim();
     let instructions = instructions_to_vec(raw);
+    println!("{:?}", instructions);
     
     let part_1_acc = infinite_loop(&instructions);
     println!("{}", part_1_acc);
@@ -20,9 +21,15 @@ fn instructions_to_vec(instructions: &str) -> Instructions {
     for instruction in instructions.lines() {
         let temp: Vec<&str> = instruction.split(" ").collect();
         let (command, info) = (temp[0], temp[1]);
-        let (sign, digit) = info.split_at(1);
+        let (sign, digit_str) = info.split_at(1);
+        
+        let digit = match sign {
+            "+" => digit_str.parse::<i32>().unwrap(),
+            _ => -digit_str.parse::<i32>().unwrap()
+        };
+        
         ret.push(
-            (command, sign, digit.parse::<i32>().unwrap()),
+            (command, digit),
         )
     }
     ret
@@ -53,17 +60,11 @@ fn update_instruction(instruction: &Instruction, curr_pos: i32, acc: i32) -> (i3
     
     match instruction.0 {
         "acc" => {
-            match instruction.1 {
-                "+" => new_acc = acc + instruction.2,
-                _ => new_acc = acc - instruction.2,
-            }
+            new_acc = acc + instruction.1;
             new_pos = curr_pos + 1;
         }
         "jmp" => {
-            match instruction.1 {
-                "+" => new_pos = curr_pos + instruction.2,
-                _ => new_pos = curr_pos - instruction.2,
-            }
+            new_pos = curr_pos + instruction.1;
             new_acc = acc;
         }
         _ => {
@@ -71,7 +72,7 @@ fn update_instruction(instruction: &Instruction, curr_pos: i32, acc: i32) -> (i3
             new_acc = acc;
         }
     }
-    println!("instruct {}, sign {}, value {}", instruction.0, instruction.1, instruction.2);
+    println!("instruct {}, value {}", instruction.0, instruction.1);
     println!("new pos {}, new acc {}", new_pos, new_acc);
     (new_pos, new_acc)
 }
