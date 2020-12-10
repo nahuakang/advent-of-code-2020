@@ -3,7 +3,6 @@ use std::fs::read_to_string;
 
 fn main() {
     let mut adapters = load_adapters("./src/input.txt");
-    println!("Adapters: {:?}", adapters);
     let part_one_answer = part_one(&mut adapters);
     println!("Part one answer: {}", part_one_answer);
 }
@@ -34,5 +33,17 @@ fn chain_and_find_diffs(adapters: &mut Vec<usize>) -> HashMap<usize, usize> {
 
 fn part_one(adapters: &mut Vec<usize>) -> usize {
     let diff_counter = chain_and_find_diffs(adapters);
+    println!("diff counter: {:?}", diff_counter);
     diff_counter[&1] * diff_counter[&3]
+}
+
+#[cfg(test)]
+mod tests{
+    use super::{load_adapters, part_one};
+
+    #[test]
+    fn test_part_one() {
+        let mut input = load_adapters("./src/test_input.txt");
+        assert_eq!(part_one(&mut input), 35);
+    }
 }
