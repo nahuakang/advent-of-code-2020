@@ -13,7 +13,7 @@ Solving puzzles instead of eating chocolate. Most of the challenges will be solv
 |  8   |   Done   |   Done   |       🦀     |
 |  9   |   Done   |   Done   |       🦀     |
 |  10  |   Done   |   Done   |       🦀     |
-|  11  |          |          |              |
+|  11  |   Done   |   Done   |       🦀     |
 |  12  |          |          |              |
 |  13  |          |          |              |
 |  14  |          |          |              |
