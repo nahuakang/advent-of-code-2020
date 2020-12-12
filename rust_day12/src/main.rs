@@ -2,122 +2,93 @@ use std::fs::read_to_string;
 
 fn main() {
     let instructions = read_to_string("./src/input.txt").expect("cannot read from file");
-    let instructions = instructions.trim();
-    let mut ship = Ship::new(instructions);
-    ship.sail();
-    println!("Manhattan distance: {}", ship.get_manhattan_distance());
+    let instructions = load_instructions(&instructions);
+    println!("Manhattan distance: {}", part_one(&instructions));
+    println!("Manhattan distance: {}", part_two(&instructions));
 }
 
-struct Ship<'a> {
-    instructions: &'a str,
-    direction: Direction,
-    east: isize,
-    west: isize,
-    north: isize,
-    south: isize,
+type Instruction<'a> = (&'a str, isize);
+
+fn load_instructions<'a>(raw_input: &'a String) -> Vec<Instruction<'a>> {
+    raw_input.trim().lines().map(|line| {
+        let (direction, value) = line.split_at(1);
+        (direction, value.parse::<isize>().unwrap())
+    }).collect()
 }
 
-impl<'a> Ship<'a> {
-    fn new(instructions: &'a str) -> Self {
-        Self {
-            instructions,
-            direction: Direction::East,
-            east: 0,
-            west: 0,
-            north: 0,
-            south: 0,
+// Direction to num => N: 0, E: 1, S: 2, W: 3
+fn part_one(instructions: &Vec<Instruction>) -> usize {
+    const NUM_DIRS: usize = 4;
+    let mut direction = 1; 
+    let mut y = 0;
+    let mut x = 0;
+
+    for (instruction, value) in instructions.clone() {
+        match instruction {
+            "N" => y += value,
+            "E" => x += value,
+            "S" => y -= value,
+            "W" => x -= value,
+            "L" => direction = (direction + NUM_DIRS - value as usize / 90) % NUM_DIRS,
+            "R" => direction = (direction + NUM_DIRS + value as usize / 90) % NUM_DIRS,
+            "F" => match direction {
+                0 => y += value,
+                1 => x += value,
+                2 => y -= value,
+                3 => x -= value,
+                _ => panic!("Invalid direction"),
+            },
+            _ => panic!("Invalid instruction"),
         }
     }
 
-    fn sail(&mut self) {
-        for instruction in self.instructions.lines() {
-            let (dir, val) = instruction.split_at(1);
-            let val = val.parse::<isize>().unwrap();
-            match dir {
-                "F" => {
-                    let direction = self.direction;
-                    self.move_once(direction, val);
-                },
-                "L" | "R" => self.change_direction(dir, val),
-                "E" | "W" | "N" | "S" => {
-                    self.move_once(self.str_to_direction(dir), val)
-                },
-                _ => panic!("Invalid direction input"),
-            } 
-        }
-    }
-
-    fn get_manhattan_distance(&self) -> isize {
-        (self.east - self.west).abs() + (self.north - self.south).abs()
-    }
-
-    fn move_once(&mut self, direction: Direction, val: isize) {
-        match direction {
-            Direction::East => self.east += val,
-            Direction::West => self.west += val,
-            Direction::North => self.north += val,
-            Direction::South => self.south += val,
-        }
-    }
-
-    fn change_direction(&mut self, direction: &str, value: isize) {        
-        let mut current_direction = self.direction_to_num();
-        match direction {
-            "L" => current_direction = (current_direction + 4 - value / 90) % 4,
-            "R" => current_direction = (current_direction + 4 + value / 90) % 4,
-            _ => panic!("Invalid change direction instruction"),
-        }
-        self.direction = self.num_to_direction(current_direction);
-    }
-
-    fn str_to_direction(&self, direction: &str) -> Direction {
-        match direction {
-            "E" => Direction::East,
-            "W" => Direction::West,
-            "N" => Direction::North,
-            "S" => Direction::South,
-            _ => panic!("Invalid direction str"),
-        }
-    }
-
-    fn direction_to_num(&self) -> isize {
-        match self.direction {
-            Direction::North => 0,
-            Direction::East => 1,
-            Direction::South => 2,
-            Direction::West => 3,
-        }
-    }
-
-    fn num_to_direction(&self, num: isize) -> Direction {
-        match num {
-            0 => Direction::North,
-            1 => Direction::East,
-            2 => Direction::South,
-            3 => Direction::West,
-            _ => panic!("Invalid direction num"),
-        }
-    }
+    return (y.abs() + x.abs()) as usize;
 }
 
-#[derive(Debug, Copy, Clone)]
-enum Direction {
-    East,
-    North,
-    South,
-    West,
+fn part_two(instructions: &Vec<Instruction>) -> usize {
+    let mut pos = (0, 0);
+    let mut way_point = (10, 1);
+
+    for (instruction, value) in instructions.clone() {
+        match instruction {
+            "N" => way_point.1 += value,
+            "E" => way_point.0 += value,
+            "S" => way_point.1 -= value,
+            "W" => way_point.0 -= value,
+            "L" => {
+                for _i in 0..(value / 90) {
+                    way_point = (-way_point.1, way_point.0);
+                }
+            },
+            "R" => {
+                for _i in 0..(value / 90) {
+                    way_point = (way_point.1, -way_point.0);
+                }
+            },
+            "F" => pos = (pos.0 + way_point.0 * value, pos.1 + way_point.1 * value),
+            _ => panic!("Invalid instruction"),
+        }
+    }
+
+    return (pos.0.abs() + pos.1.abs()) as usize;
 }
+
 
 #[cfg(test)]
 mod tests {
-    use super::{read_to_string, Ship};
+    use super::{read_to_string, load_instructions, part_one, part_two};
 
     #[test]
     fn test_part_one() {
         let instructions = read_to_string("./src/test_input.txt").expect("cannot read from file");
-        let instructions = instructions.trim();
-        let mut ship = Ship::new(instructions);
-        ship.sail();
-        assert_eq!(ship.get_manhattan_distance(), 25);
+        let instructions = load_instructions(&instructions);
+        assert_eq!(part_one(&instructions), 25);
+    }
+
+    #[test]
+    fn test_part_two() {
+        let instructions = read_to_string("./src/test_input.txt").expect("cannot read from file");
+        let instructions = load_instructions(&instructions);
+        assert_eq!(part_two(&instructions), 286);
     }
 }
