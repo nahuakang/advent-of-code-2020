@@ -20,7 +20,7 @@ Solving puzzles instead of eating chocolate. Most of the challenges will be solv
 |  15  |   Done   |   Done   |       🦀     |
 |  16  |   Done   |   Done   |       🦀     |
 |  17  |          |          |              |
-|  18  |          |          |              |
+|  18  |   Done   |   Done   |       🦀     |
 |  19  |          |          |              |
 |  20  |          |          |              |
 |  21  |          |          |              |
