@@ -65,8 +65,8 @@ fn evaluate(line: &mut Chars, evaluator: Evaluator) -> usize {
 
 fn part1_evaluator(mut vals: VecDeque<usize>, mut ops: VecDeque<Op>) -> usize {
     while let Some(op) = ops.pop_front() {
-        let a = vals.pop_front().expect("pls");
-        let b = vals.pop_front().expect("pls");
+        let a = vals.pop_front().unwrap();
+        let b = vals.pop_front().unwrap();
         vals.push_front(op.apply(a, b));
     }
     vals.pop_front().expect("shoud be one")
